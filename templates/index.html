@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AddisGo Pro 🚕</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div id="map"></div>
+
+        <div class="panel">
+            <div class="lang-wrapper">
+                <button id="lang-toggle" class="lang-btn" onclick="toggleLanguage()">አማርኛ</button>
+            </div>
+
+            <h1 id="main-title">AddisGo <span class="accent">Pro</span></h1>
+            <p class="subtitle" id="main-sub">AI Ride Comparison & Market Intelligence</p>
+
+            <div class="card">
+                <span class="card-header" id="h-route">Global Route Finder</span>
+                <input type="text" id="start" placeholder="📍 Select Start on Map" readonly>
+                <input type="text" id="dest" placeholder="🏁 Select Destination on Map" readonly>
+                <button class="btn-main" id="btn-compare" onclick="openComparison()">Compare All Rides</button>
+                <ul id="hub-list" class="directory"></ul>
+            </div>
+
+            <div class="card">
+                <span class="card-header" id="h-market">Market Essentials</span>
+                <div class="grid" id="ess-grid"></div>
+            </div>
+
+            <div class="card fuel-theme">
+                <span class="card-header" id="h-fuel">Fuel Rates live</span>
+                <div class="grid" id="fuel-grid"></div>
+            </div>
+
+            <div class="card" style="background: #e0f2fe; border-color: #bae6fd;">
+                <span class="card-header" style="color: #0369a1;">Addis Ababa Live Weather</span>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="w-icon" style="font-size: 30px;">☀️</span>
+                    <div style="text-align: right;">
+                        <b id="tick-temp" style="font-size: 24px; color: #0369a1;">--.-</b><b style="color: #0369a1;">°C</b>
+                        <div id="w-status" style="font-size: 10px; color: #0ea5e9; font-weight: bold; text-transform: uppercase;">Syncing...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card currency-theme">
+                <span class="card-header" id="h-curr">Forex Board (Official)</span>
+                <div id="curr-list" class="forex-list">
+                    </div>
+            </div>
+
+            <div class="card" onclick="openFullCalendar()" style="cursor:pointer; background:#fff5f5; border-color:#fecaca; margin-bottom: 20px;">
+                <span class="card-header" style="color:#b91c1c;">📅 Ethio Calendar 2018</span>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b id="box-eth-date" style="font-size: 18px; color:#b91c1c;">Loading...</b>
+                    <span id="box-eth-label" style="font-size: 10px; color:#ef4444; font-weight:bold;">VIEW HOLIDAYS →</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ride-sidebar" class="split-sidebar">
+        <div class="sidebar-header">
+            <button class="back-btn" onclick="closeSplitView()">← Back</button>
+            <h2 id="route-title">Route</h2>
+            <span id="route-km" class="km-label">0.0 KM</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <div id="vertical-ride-list"></div>
+    </div>
+
+    <div id="calendar-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.95); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+        <div style="width:100%; max-width:400px; background:#fff; border-radius:20px; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+            <div style="background:#b91c1c; color:white; padding:25px; text-align:center; position:relative;">
+                <span onclick="closeCalendar()" style="position:absolute; right:20px; top:15px; cursor:pointer; font-size:24px;">✕</span>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <button onclick="changeMonth(-1)" style="background:none; border:none; color:white; cursor:pointer; font-size:22px;">❮</button>
+                    <h2 id="cal-month-year" style="margin:0; font-size:24px;">Megabit 2018</h2>
+                    <button onclick="changeMonth(1)" style="background:none; border:none; color:white; cursor:pointer; font-size:22px;">❯</button>
+                </div>
+                <small id="cal-subtitle" style="opacity:0.8; display:block; margin-top:5px;">Ethiopian Era • 2026 GC</small>
+            </div>
+
+            <div id="calendar-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:8px; padding:20px; text-align:center; font-weight:bold; background: white;">
+                </div>
+
+            <div id="holiday-info" style="padding:20px; background:#f8fafc; border-top:1px solid #e2e8f0; min-height:100px; text-align:center; display:flex; flex-direction:column; justify-content:center;">
+                <p style="color:#64748b; margin:0; font-size:14px;">Tap a date to check holiday & work status.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-box">
+            <h1 id="confirm-brand">Brand</h1>
+            <p style="margin: 10px 0; color: #64748b;">Estimated Trip Price</p>
+            <h2 id="confirm-price">0.00 ETB</h2>
+            <button class="btn-main" onclick="closeAll()" style="background: #0f172a; margin-top: 20px;">Confirm & Close</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
